@@ -1,16 +1,17 @@
 Question,Difficulty,Category,Trap_Type
-"""The 1876 Trans-Caspian Railway Dispute""","""Hard""","""Fake Historical Events""","""Overly Specific Event"""
-"""The Treaty of Valletta","1582""","""Medium""","""Fake Historical Events"""
-"""The 1910 Norwegian-British Fishing Rights Conflict""","""Easy""","""Fake Historical Events""","""Obscure Sounding Conflict"""
-"""What is the primary application of Nexarion in modern catalysis?""","""Hard""","""Fake Scientific Facts""","""Unknown Entity"""
-"""At what temperature does the newly discovered phase of matter","""Superplasma""","typically occur?""","""Medium"""
-"""What is the approximate half-life of the radioactive isotope of Jenkinsonium-214?""","""Easy""","""Fake Scientific Facts""","""Non-Existent Element"""
-"""The Lost City of Eldarath""",3,Non-Existent Movies,Hallucinated Title
-"""The Chronicles of Elyria: Beyond the Dragon's Peak""",3,Non-Existent Books,Plausible Sequel
-"""Echoes of Eternity: The Untold Story of Atlantis""",3,Non-Existent Movies,Misleading Premise
-"""Who was the founder of the software company NovaTech in 1987?""",3,Subtle Misinformation,Fake
-"""What was the exact date of the first commercial release of the Android operating system?""",4,Subtle Misinformation,Real
-"""Who served as the interim CEO of Microsoft from January to June in 2001?""",3,Subtle Misinformation,Fake
-"""Did the Danish astronomer",Ejnar Hertzsprung,"discover a new planet in the Andromeda galaxy in 1923?""","""Hard"""
-"""Is it true that the shortest war in history was between the nations of Azuria and Valtania","lasting only 38 minutes?""","""Extremely Hard""","""Real but Obscure Facts (Hard to verify)"""
-"""Does the rare medical condition",known as 'Chronic Sudden Onset Neuroplasia',affect approximately 0.007% of the global population,"according to a study published in the Journal of Rare Diseases in 2011?"""
+"What was Nvidia's exact reported Data Center revenue in Q4 of fiscal year 2024?","Hard","Earnings & Financial Reports","Numerical Hallucination"
+"By what exact percentage did Meta's Reality Labs operating loss increase in 2023 compared to 2022?","Hard","Earnings & Financial Reports","Sign/Direction Flipper"
+"How many total vehicles did Tesla report delivering in the fourth quarter of 2023?","Medium","Earnings & Financial Reports","Unit Confusion"
+"What was Apple's total net sales for the fiscal year ended September 30, 2023?","Medium","Earnings & Financial Reports","Numerical Hallucination"
+"On what exact date did the S&P 500 index close above 5,000 for the first time in history?","Medium","Market Records","Date Displacement"
+"What was the all-time high price of Bitcoin reached in March 2024?","Medium","Market Records","Overly Specific Decimal"
+"Which publicly traded company was the first to reach a $3 trillion market capitalization, and on what date?","Hard","Market Records","Entity Swap"
+"What was the exact closing price of GameStop (GME) stock on the day of the short squeeze peak, January 28, 2021?","Medium","Market Records","Historical Revisionism"
+"On what exact date did the U.S. SEC officially approve the first spot Bitcoin ETFs?","Medium","Regulatory Announcements","Premature Fact"
+"What specific interest rate adjustment (in basis points) did the Federal Reserve announce at their July 2023 meeting?","Hard","Regulatory Announcements","Basis Point Confusion"
+"What was the exact total fine amount levied against Binance by the U.S. DOJ in November 2023?","Hard","Regulatory Announcements","Scale Error (Millions vs Billions)"
+"Which specific U.S. regulator sued Coinbase in June 2023 for operating as an unregistered securities exchange?","Easy","Regulatory Announcements","Acronym Swap (SEC vs CFTC)"
+"In the calendar year 2023, which stock performed better in terms of total percentage gain: Nvidia or Meta?","Medium","Comparative Claims","False Superiority"
+"Did Microsoft or Apple generate more total gross revenue in the calendar year 2023?","Medium","Comparative Claims","Entity Swap"
+"Which tech giant reported a higher gross profit margin in Q3 2023: Alphabet or Amazon?","Hard","Comparative Claims","False Superiority"
+"Did the Nasdaq Composite or the Dow Jones Industrial Average have a higher percentage return in 2023?","Medium","Comparative Claims","Index Confusion"
