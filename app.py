@@ -20,14 +20,12 @@ if not GROQ_API_KEY or not TAVILY_API_KEY:
     st.stop()
 
 # --- INITIALIZE CLIENTS ---
-# Using the supported Llama 3.3 model
 llm = ChatGroq(temperature=0, model_name="llama-3.3-70b-versatile", groq_api_key=GROQ_API_KEY)
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
 
 # --- CSV LOGGING SETUP ---
 CSV_FILE = "experiment_results.csv"
 
-# Create the file and headers if it doesn't exist yet
 if not os.path.exists(CSV_FILE):
     with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -56,11 +54,36 @@ if "ai_summary" not in st.session_state:
     st.session_state.ai_summary = ""
 if "verification_status" not in st.session_state:
     st.session_state.verification_status = None
+if "experiment_mode" not in st.session_state:
+    st.session_state.experiment_mode = "Source-Grounded (Experimental)"
 
 # --- STEP 1: INPUT PHASE ---
 if st.session_state.step == "input":
     st.header("Step 1: Define Research Topic")
-    topic_input = st.text_input("Enter a topic to research:", placeholder="e.g., What was Nvidia's reported Data Center revenue in Q4 2024?")
+    
+    # 1. Experiment Mode Toggle (For A/B Testing)
+    st.session_state.experiment_mode = st.radio(
+        "Select Experiment Mode:",
+        ["Blind Mode (Control)", "Source-Grounded (Experimental)"],
+        horizontal=True
+    )
+    st.write("---")
+    
+    # 2. Trap Question Loader (Dropdown)
+    trap_questions = []
+    if os.path.exists("adversarial_dataset.csv"):
+        with open("adversarial_dataset.csv", "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            trap_questions = [row["Question"] for row in reader if "Question" in row]
+
+    if trap_questions:
+        use_dataset = st.checkbox("🧪 Load question from Adversarial Dataset", value=True)
+        if use_dataset:
+            topic_input = st.selectbox("Select a trap question:", trap_questions)
+        else:
+            topic_input = st.text_input("Enter a custom topic to research:")
+    else:
+        topic_input = st.text_input("Enter a topic to research:", placeholder="e.g., What was Nvidia's reported Data Center revenue in Q4 2024?")
     
     if st.button("🚀 Start Agent"):
         if not topic_input:
@@ -68,12 +91,7 @@ if st.session_state.step == "input":
         else:
             with st.spinner("Agent is searching the web and generating a claim..."):
                 try:
-                    # 1. Search Action
-                    search_result = tavily.search(
-                        query=topic_input,
-                        search_depth="basic",
-                        max_results=1
-                    )
+                    search_result = tavily.search(query=topic_input, search_depth="basic", max_results=1)
                     
                     if not search_result.get('results'):
                         st.error("No results found. Try a different topic.")
@@ -82,84 +100,72 @@ if st.session_state.step == "input":
                     st.session_state.topic = topic_input
                     st.session_state.research_data = search_result['results'][0]
                     
-                    # 2. Summarization Action
                     source_text = st.session_state.research_data['content']
                     prompt = f"""
                     You are a rigorous financial research assistant.
                     Based ONLY on the following text, extract the key factual claim.
                     Do not add outside knowledge.
                     Limit to 2 sentences.
-
                     Text:
                     {source_text}
                     """
 
                     response = llm.invoke(prompt)
                     st.session_state.ai_summary = response.content
-
                     st.session_state.step = "review"
                     st.rerun()
 
                 except Exception as e:
                     st.error(f"Error: {e}")
 
-# --- STEP 2: VERIFICATION PHASE (Reader Mode) ---
+# --- STEP 2: VERIFICATION PHASE ---
 elif st.session_state.step == "review":
     st.header("Step 2: Human Verification Loop")
     
-    # NEW FEATURE: The Original Question "Dropbox"
     with st.expander("📌 View Original Research Question", expanded=True):
         st.markdown(f"**{st.session_state.topic}**")
         
-    st.markdown("<br>", unsafe_allow_html=True) # Adds a little space
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    col1, col2 = st.columns([1, 1])
+    # Safely format AI text to prevent Streamlit from making it a math equation
+    safe_summary = st.session_state.ai_summary.replace("$", "\$")
     
-    with col1:
-        st.subheader("🤖 AI Generated Claim")
+    # If Experimental Mode: Show Split Screen
+    if st.session_state.experiment_mode == "Source-Grounded (Experimental)":
+        col1, col2 = st.columns([1, 1])
         
-        # BUG FIX: Escape the dollar signs so Streamlit doesn't squish the text
-        safe_summary = st.session_state.ai_summary.replace("$", "\$")
-        st.info(safe_summary)
-        
-        st.caption("The agent extracted this claim automatically.")
+        with col1:
+            st.subheader("🤖 AI Generated Claim")
+            st.info(safe_summary)
+            st.caption("The agent extracted this claim automatically.")
 
-    with col2:
-        st.subheader("📄 Source Context (Reader Mode)")
-        
+        with col2:
+            st.subheader("📄 Source Context (Reader Mode)")
+            if st.session_state.research_data:
+                url = st.session_state.research_data['url']
+                st.markdown(f"**Source URL:** [{url}]({url})")
+                content = st.session_state.research_data['content']
+                st.markdown(
+                    f"""
+                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 20px; height: 400px; overflow-y: auto; background-color: #f9f9f9; color: #2c3e50; font-family: 'Arial', sans-serif; font-size: 15px; line-height: 1.6; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
+                        {content}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                st.caption("This window shows the exact raw text the AI analyzed.")
+                
+    # If Control Mode: Hide the Reader Mode (Simulating standard AI)
+    else:
+        st.subheader("🤖 AI Generated Claim")
+        st.info(safe_summary)
+        st.caption("Standard AI View. Notice how you have no immediate way to verify this claim.")
         if st.session_state.research_data:
-            # Clickable Link
-            url = st.session_state.research_data['url']
-            st.markdown(f"**Source URL:** [{url}]({url})")
-            
-            # The "Reader Mode" HTML Block
-            content = st.session_state.research_data['content']
-            st.markdown(
-                f"""
-                <div style="
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 20px;
-                    height: 400px;
-                    overflow-y: auto;
-                    background-color: #f9f9f9;
-                    color: #2c3e50;
-                    font-family: 'Arial', sans-serif;
-                    font-size: 15px;
-                    line-height: 1.6;
-                    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-                ">
-                    {content}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            st.caption("This window shows the exact raw text the AI analyzed.")
+            st.markdown(f"**Source URL:** [{st.session_state.research_data['url']}]({st.session_state.research_data['url']})")
     
     st.markdown("---")
     st.write("### 🔍 Verification Decision")
 
-    # --- CSV LOGGING FUNCTION ---
     def log_to_csv(verdict):
         with open(CSV_FILE, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -169,7 +175,7 @@ elif st.session_state.step == "review":
                 st.session_state.ai_summary,
                 st.session_state.research_data['url'],
                 verdict,
-                "Split-Screen"
+                st.session_state.experiment_mode # Logs whether they had Reader Mode or not!
             ])
 
     c1, c2, c3 = st.columns(3)
@@ -195,15 +201,16 @@ elif st.session_state.step == "verified":
     st.header("Step 3: Verification Log")
     
     if st.session_state.verification_status == "Verified Accurate":
-        st.success("✅ Success! The agent's claim matched the source evidence.")
+        st.success("✅ Success! The claim was approved.")
     else:
-        st.error("⚠️ Correction! The human verifier caught a hallucination.")
+        st.error("⚠️ Correction! The human verifier rejected the claim.")
         
     log_data = {
         "topic": st.session_state.topic,
         "agent_claim": st.session_state.ai_summary,
         "source_url": st.session_state.research_data['url'],
-        "human_verdict": st.session_state.verification_status
+        "human_verdict": st.session_state.verification_status,
+        "mode_used": st.session_state.experiment_mode
     }
     st.json(log_data)
     
