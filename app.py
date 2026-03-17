@@ -102,6 +102,7 @@ if st.session_state.step == "input":
                     st.session_state.topic = topic_input
                     st.session_state.research_data = search_result['results'][0]
                     
+                    # UPDATED SYSTEM PROMPT
                     source_text = st.session_state.research_data['content']
                     
                     # --- NEW JSON PROMPT FOR HIGHLIGHTING ---
@@ -247,6 +248,7 @@ elif st.session_state.step == "verified":
     st.json(log_data)
     
     st.markdown("---")
+    # FIXED BUTTON AND STATE RESET
     if st.button("🔬 Test Another Topic"):
         st.session_state.step = "input"
         st.rerun()
